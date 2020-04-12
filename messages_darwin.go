@@ -26,6 +26,8 @@ func (g MessagesGateway) Send(recipient, text string) error {
 	}
 
 	c := exec.Command("/bin/sh", filename, recipient, text)
+	c.Stderr = os.Stderr
+	c.Stdout = os.Stdout
 	return c.Run()
 }
 
@@ -50,6 +52,7 @@ exec <"$0" || exit; read v; read v; read v; exec /usr/bin/osascript - "$@" "$std
 
 on run {phoneNumber, message}
 activate application "Messages"
+delay 1
 tell application "System Events" to tell process "Messages"
 	key code 45 using command down -- press Command + N to start a new window
 	keystroke phoneNumber -- input the phone number
@@ -57,6 +60,7 @@ tell application "System Events" to tell process "Messages"
 	keystroke message -- type some message
 	key code 36 -- press Enter to send
 end tell
+delay 1
 tell application "Messages" to close window 1 -- Messages was likely not open since qsms was used, so close the window
 end run`)
 
