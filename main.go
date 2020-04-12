@@ -106,10 +106,10 @@ func initConfig() {
 
 	viper.AutomaticEnv() // read in environment variables that match
 
-	if err := viper.ReadInConfig(); err == nil {
+	err = viper.ReadInConfig()
+	if err == nil {
 		return
 	}
-
 	if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 		exitWithError(err)
 	}

@@ -13,31 +13,24 @@ import (
 // MessagesGateway is a Gateway for sending SMS via the OSX Messages app
 type MessagesGateway struct{}
 
+// Send implements Gateway.Send
 func (g MessagesGateway) Send(recipient, text string) error {
 	home, err := homedir.Dir()
 	if err != nil {
 		return err
 	}
-
-	filename := path.Join(home, ".imessage.sh")
+	filename := path.Join(home, ".qsms.messages.sh")
 
 	if err := g.ensureScriptFileExists(filename); err != nil {
 		return err
 	}
 
-	home, err := homedir.Dir()
-	if err != nil {
-		exitWithError(err)
-	}
-
 	c := exec.Command("/bin/sh", filename, recipient, text)
-	if err = c.Run(); err != nil {
-		exitWithError(err)
-	}
+	return c.Run()
 }
 
 func (g MessagesGateway) ensureScriptFileExists(filename string) error {
-	_, err = os.Stat(filename)
+	_, err := os.Stat(filename)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
