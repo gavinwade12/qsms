@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path"
 
@@ -59,22 +58,31 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err != nil {
 		_, ok := err.(viper.ConfigFileNotFoundError)
 		if !ok {
-			log.Fatal(err)
+			exitWithError(err)
 		}
 
 		f, err := os.Create(path.Join(home, ".qsms.json"))
 		if err != nil {
-			log.Fatal(err)
+			exitWithError(err)
 		}
 		if err = f.Close(); err != nil {
-			log.Fatal(err)
+			exitWithError(err)
 		}
 
 		viper.Set("gateway", map[string]string{"verizon": "vtext.com"})
 		if err = viper.WriteConfig(); err != nil {
-			log.Fatal(err)
+			exitWithError(err)
 		}
 	}
 
 	gateway = viper.GetStringMapString("gateway")
+}
+
+func exitWithErrorMessage(msg string, args ...interface{}) {
+	fmt.Printf(msg+"\n", args...)
+	os.Exit(1)
+}
+
+func exitWithError(err error) {
+	exitWithErrorMessage(err.Error())
 }

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"log"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -10,33 +9,31 @@ import (
 
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "update the domain/carrier gateway list",
-	Long: `By default, an attempt will be made to update the carrier/domain gateway list automatically. The list is pulled from 'https://support.teamunify.com/en/articles/227-email-to-sms-gateway-list'.
-
-If you'd like to add/edit a carrier, you can manually specify the carrier and domain:
-qsms update -c "Verizon" -d "vtext.com"
+	Short: "Update the domain/carrier gateway list",
+	Long: `To add/edit a carrier, specify the carrier and domain:
+qsms update -c verizon -d "vtext.com"
 
 To remove a carrier from the list, use the remove flag:
-qsms update -c "Verizon" -r`,
+qsms update -c verizon -r`,
 	Run: func(cmd *cobra.Command, args []string) {
 		carrier, err := cmd.Flags().GetString("carrier")
 		if err != nil {
-			log.Fatal(err)
+			exitWithError(err)
 		}
 		carrier = strings.ToLower(carrier)
 
 		domain, err := cmd.Flags().GetString("domain")
 		if err != nil {
-			log.Fatal(err)
+			exitWithError(err)
 		}
 
 		remove, err := cmd.Flags().GetBool("remove")
 		if err != nil {
-			log.Fatal(err)
+			exitWithError(err)
 		}
 
 		if remove && domain != "" {
-			log.Fatal("The remove and domain flags cannot be present simultaneously.")
+			exitWithErrorMessage("The remove and domain flags cannot be present simultaneously.")
 		}
 
 		if remove {
@@ -47,7 +44,7 @@ qsms update -c "Verizon" -r`,
 
 		viper.Set("gateway", gateway)
 		if err := viper.WriteConfig(); err != nil {
-			log.Fatal(err)
+			exitWithError(err)
 		}
 	},
 }
@@ -55,9 +52,9 @@ qsms update -c "Verizon" -r`,
 func init() {
 	rootCmd.AddCommand(updateCmd)
 
-	updateCmd.Flags().StringP("carrier", "c", "", "carrier e.g. 'Verizon'")
+	updateCmd.Flags().StringP("carrier", "c", "", "carrier to update")
 	updateCmd.MarkFlagRequired("carrier")
-	updateCmd.Flags().StringP("domain", "d", "", "domain e.g. 'vtext.com'")
+	updateCmd.Flags().StringP("domain", "d", "", "the carrier's domain")
 	updateCmd.Flags().BoolP("remove", "r", false, "remove the specificed carrier")
 
 }
