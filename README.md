@@ -10,7 +10,7 @@ Installing qsms currently requires you to have Go installed.
 
 # Gateways
 
-Currently, only 2 gateways are supported: email and Twilio (3 if you're a Mac user - there's support for sending directly through the Messages application). The email and Twilio gateways require configuration. All but one of the email fields can be configured through the cli the first time you try to use the gateway, and the Twilio gateway can be completely configured through the cli. The Messages gateway requires no configuration.
+Currently, only 2 gateways are supported: email and Twilio (3 if you're a Mac user - there's support for sending directly through the Messages application). The email and Twilio gateways require configuration; however, enough fields can be configured through the cli to get you going with a gateway the first time you use it. The Messages gateway requires no configuration at all.
 
 - [Configuring the Email Gateway](#configure-email-gateway)
 - [Configuring the Twilio Gateway](#configure-twilio-gateway)
@@ -27,7 +27,7 @@ Provide a gateway if you don't want to use your default.
 
 # Configuration
 
-The config file for qsms is a json file located at $HOME/.qsms.json. Most of the time, the cli will prompt for any missing values automatically, but there are cases where this may need edited manually.
+The config file for qsms is a json file located at `$HOME/.qsms.json`. Most of the time, the cli will prompt for any missing values automatically, but there are cases where this may need edited manually.
 
 ### Configure Email Gateway
 
