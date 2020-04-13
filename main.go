@@ -16,71 +16,42 @@ import (
 var gateways = make(map[string]Gateway)
 
 func init() {
+	initConfig()
+
 	senderPass, _ := base32.StdEncoding.DecodeString(viper.GetString("gateways.email.sender_password"))
-	gateways["email"] = EmailGateway{
-		SMTPServer:     viper.GetString("gateways.email.smtp_server"),
-		Sender:         viper.GetString("gateways.email.sender"),
-		SenderPassword: string(senderPass),
+	gateways["email"] = &EmailGateway{
+		SMTPServer:           viper.GetString("gateways.email.smtp_server"),
+		SMTPServerPort:       viper.GetInt("gateways.email.smtp_server_port"),
+		Sender:               viper.GetString("gateways.email.sender"),
+		SenderPassword:       string(senderPass),
+		CarrierDomainMapping: viper.GetStringMapString("gateways.email.mapping"),
+	}
+	gateways["twilio"] = &TwilioGateway{
+		AccountSID: viper.GetString("gateways.twilio.account_sid"),
+		AuthToken:  viper.GetString("gateways.twilio.auth_token"),
+		FromNumber: viper.GetString("gateways.twilio.from_number"),
 	}
 }
 
 func main() {
-	initConfig()
-
 	g := viper.GetString("default_gateway")
 	flag.StringVar(&g, "gateway", g, "the gateway to send the SMS")
 	flag.StringVar(&g, "g", g, "the gateway to send the SMS (shorthand)")
 	flag.Parse()
 
-	if len(os.Args) < 3 {
-		flag.Usage()
-		fmt.Println("qsms [recipient] [number]")
-		return
-	}
-
+	var err error
 	if g == "" {
 		if viper.GetString("default_gateway") != "" {
 			exitWithErrorMessage("gateway is required")
 		}
 		fmt.Println("no gateway was specified and no default is set")
-		fmt.Printf("would you like to set a default gateway now? (y/n): ")
-		r := bufio.NewReader(os.Stdin)
-		l, _, err := r.ReadLine()
+		g, err = setDefaultGateway()
 		if err != nil {
 			exitWithError(err)
 		}
-
-		ans := strings.ToLower(strings.TrimSpace(string(l)))
-		if ans != "y" && ans != "yes" {
-			exitWithErrorMessage("a gateway is required")
-		}
-
-		options := make([]string, len(gateways))
-		i := 0
-		for k := range gateways {
-			options[i] = k
-			i++
-		}
-
-		fmt.Printf("select a gateway (options: %s): ", strings.Join(options, ","))
-		l, _, err = r.ReadLine()
-		if err != nil {
-			exitWithError(err)
-		}
-
-		ans = strings.ToLower(strings.TrimSpace(string(l)))
-		if ans == "" {
+		if g == "" {
 			exitWithErrorMessage("gateway is required")
-		} else if gateways[ans] == nil {
-			exitWithErrorMessage("invalid option")
 		}
-
-		viper.Set("default_gateway", ans)
-		if err = viper.WriteConfig(); err != nil {
-			exitWithError(err)
-		}
-
-		g = ans
 	}
 
 	gateway := gateways[g]
@@ -88,7 +59,29 @@ func main() {
 		exitWithErrorMessage("the gateway was not specified or could not be found: %s", g)
 	}
 
-	if err := gateway.Send(os.Args[1], os.Args[2]); err != nil {
+	var recipient, text string
+	argCount := len(os.Args)
+	if argCount == 3 {
+		recipient = os.Args[1]
+		text = os.Args[2]
+	} else if argCount == 4 || argCount == 5 {
+		recipient = os.Args[argCount-2]
+		text = os.Args[argCount-1]
+	} else {
+		flag.Usage()
+		fmt.Println("qsms [recipient] [text]")
+		fmt.Println(os.Args)
+		exitWithErrorMessage("invalid argument count")
+	}
+
+	if gateway.RequiresConfiguration() {
+		fmt.Printf("the %s gateway is not configured\n", g)
+		if err = gateway.PromptForConfiguration(); err != nil {
+			exitWithError(err)
+		}
+	}
+
+	if err = gateway.Send(recipient, text); err != nil {
 		exitWithError(err)
 	}
 }
@@ -128,9 +121,53 @@ func initConfig() {
 	viper.Set("gateways.email.sender", "")
 	viper.Set("gateways.email.sender_password", "")
 	viper.Set("gateways.email.mapping", map[string]string{"verizon": "vtext.com"})
+	viper.Set("gateways.twilio.account_sid", "")
+	viper.Set("gateways.twilio.auth_token", "")
+	viper.Set("gateways.twilio.from_number", "")
 	if err = viper.WriteConfig(); err != nil {
 		exitWithError(err)
 	}
+}
+
+func setDefaultGateway() (string, error) {
+	fmt.Printf("would you like to set a default gateway now? (y/n): ")
+	r := bufio.NewReader(os.Stdin)
+	l, _, err := r.ReadLine()
+	if err != nil {
+		return "", err
+	}
+
+	ans := strings.ToLower(strings.TrimSpace(string(l)))
+	if ans != "y" && ans != "yes" {
+		return "", nil
+	}
+
+	options := make([]string, len(gateways))
+	i := 0
+	for k := range gateways {
+		options[i] = k
+		i++
+	}
+
+	fmt.Printf("select a gateway (options: %s): ", strings.Join(options, ","))
+	l, _, err = r.ReadLine()
+	if err != nil {
+		return "", err
+	}
+
+	gateway := strings.ToLower(strings.TrimSpace(string(l)))
+	if gateway == "" {
+		return "", fmt.Errorf("gateway is required")
+	} else if gateways[gateway] == nil {
+		return "", fmt.Errorf("invalid option")
+	}
+
+	viper.Set("default_gateway", gateway)
+	if err = viper.WriteConfig(); err != nil {
+		return "", err
+	}
+
+	return gateway, nil
 }
 
 func exitWithErrorMessage(msg string, args ...interface{}) {

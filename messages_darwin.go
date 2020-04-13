@@ -67,3 +67,13 @@ end run
 
 	return nil
 }
+
+// RequiresConfiguration implements Gateway.RequiresConfiguration
+func (g MessagesGateway) RequiresConfiguration() bool {
+	return false
+}
+
+// PromptForConfiguration implements Gateway.PromptForConfiguration
+func (g MessagesGateway) PromptForConfiguration() error {
+	return nil
+}
