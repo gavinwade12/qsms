@@ -25,6 +25,11 @@ Provide a gateway if you don't want to use your default.
 
     qsms -g twilio 4195551234 "Hello World!"
 
+Send a text to a list of friends.
+
+    printf "adam,+1 (123) 456-7890\nbeth,987654321\ncharles,419-555-1234\n" > friends.csv
+    while IFS=, read -r name number; do qsms $number "Hello, $name."; done < friends.csv
+
 # Configuration
 
 The config file for qsms is a json file located at `$HOME/.qsms.json`. Most of the time, the cli will prompt for any missing values automatically, but there are cases where this may need edited manually.
