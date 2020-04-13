@@ -35,8 +35,15 @@ func init() {
 
 func main() {
 	g := viper.GetString("default_gateway")
-	flag.StringVar(&g, "gateway", g, "the gateway to send the SMS")
-	flag.StringVar(&g, "g", g, "the gateway to send the SMS (shorthand)")
+	options := make([]string, len(gateways))
+	i := 0
+	for k := range gateways {
+		options[i] = k
+		i++
+	}
+	optionsString := strings.Join(options, ",")
+	flag.StringVar(&g, "gateway", g, fmt.Sprintf("the gateway to send the SMS (options: %s)", optionsString))
+	flag.StringVar(&g, "g", g, fmt.Sprintf("the gateway to send the SMS (shorthand) (options: %s)", optionsString))
 	flag.Parse()
 
 	var err error
@@ -70,7 +77,6 @@ func main() {
 	} else {
 		flag.Usage()
 		fmt.Println("qsms [recipient] [text]")
-		fmt.Println(os.Args)
 		exitWithErrorMessage("invalid argument count")
 	}
 
@@ -96,7 +102,7 @@ func initConfig() {
 	viper.SetConfigName(".qsms")
 	viper.SetConfigType("json")
 
-	viper.AutomaticEnv() // read in environment variables that match
+	viper.AutomaticEnv()
 
 	err = viper.ReadInConfig()
 	if err == nil {
