@@ -62,7 +62,8 @@ tell application "System Events" to tell process "Messages"
 end tell
 delay 1
 tell application "Messages" to close window 1 -- Messages was likely not open since qsms was used, so close the window
-end run`)
+end run
+`)
 
 	return nil
 }

@@ -14,7 +14,6 @@ import (
 )
 
 var gateways = make(map[string]Gateway)
-var preferredDefaultGateway = "email"
 
 func init() {
 	senderPass, _ := base32.StdEncoding.DecodeString(viper.GetString("gateways.email.sender_password"))
@@ -123,7 +122,7 @@ func initConfig() {
 		exitWithError(err)
 	}
 
-	viper.Set("default_gateway", preferredDefaultGateway)
+	viper.Set("default_gateway", "")
 	viper.Set("gateways.email.smtp_server", "")
 	viper.Set("gateways.email.smtp_server_port", 0)
 	viper.Set("gateways.email.sender", "")
