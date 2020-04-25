@@ -10,7 +10,7 @@ Installing qsms currently requires you to have Go installed.
 
 # Gateways
 
-There are currently 3 gateways supported: email, Twilio, and Messages (OSX only). The email and Twilio gateways require configuration; however, enough fields can be configured through the cli to get you going with a gateway the first time you use it. The Messages gateway requires no configuration at all.
+There are currently 3 gateways supported: email, Twilio, and Messages (macOS only). The email and Twilio gateways require configuration; however, enough fields can be configured through the cli to get you going with a gateway the first time you use it. The Messages gateway requires no configuration at all.
 
 - [Configuring the Email Gateway](#configure-email-gateway)
 - [Configuring the Twilio Gateway](#configure-twilio-gateway)

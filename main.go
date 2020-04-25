@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"runtime"
 	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -26,10 +27,15 @@ func init() {
 		SenderPassword:       string(senderPass),
 		CarrierDomainMapping: viper.GetStringMapString("gateways.email.mapping"),
 	}
+
 	gateways["twilio"] = &TwilioGateway{
 		AccountSID: viper.GetString("gateways.twilio.account_sid"),
 		AuthToken:  viper.GetString("gateways.twilio.auth_token"),
 		FromNumber: viper.GetString("gateways.twilio.from_number"),
+	}
+
+	if runtime.GOOS == "darwin" {
+		gateways["messages"] = MessagesGateway{}
 	}
 }
 

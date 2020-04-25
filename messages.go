@@ -1,5 +1,3 @@
-// +build darwin
-
 package main
 
 import (
@@ -10,7 +8,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
-// MessagesGateway is a Gateway for sending SMS via the OSX Messages app
+// MessagesGateway is a Gateway for sending SMS via the macOS Messages app
 type MessagesGateway struct{}
 
 // Send implements Gateway.Send
